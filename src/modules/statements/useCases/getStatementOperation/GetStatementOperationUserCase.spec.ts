@@ -2,30 +2,30 @@ import { InMemoryUsersRepository } from '../../../users/repositories/in-memory/I
 import { CreateUserUseCase } from '../../../users/useCases/createUser/CreateUserUseCase';
 import { InMemoryStatementsRepository } from '../../repositories/in-memory/InMemoryStatementsRepository';
 import { CreateStatementUseCase } from '../createStatement/CreateStatementUseCase';
-import { GetBalanceUseCase } from './GetBalanceUseCase';
+import { GetStatementOperationUseCase } from './GetStatementOperationUseCase';
 
 let statementsRepositoryInMemory: InMemoryStatementsRepository;
 let usersRepositoryInMemory: InMemoryUsersRepository;
 let createStatementUseCase: CreateStatementUseCase;
-let getBalanceUserCase: GetBalanceUseCase;
 let createUserUseCase: CreateUserUseCase;
+let getStatementOperationUseCase: GetStatementOperationUseCase;
 
 enum OperationType {
   DEPOSIT = 'deposit',
   WITHDRAW = 'withdraw',
 }
 
-describe("Get Balance", () => {
+describe("Create Statement", () => {
 
   beforeEach(() => {
     usersRepositoryInMemory = new InMemoryUsersRepository();
     statementsRepositoryInMemory = new InMemoryStatementsRepository();
     createUserUseCase = new CreateUserUseCase(usersRepositoryInMemory);
     createStatementUseCase = new CreateStatementUseCase(usersRepositoryInMemory, statementsRepositoryInMemory);
-    getBalanceUserCase = new GetBalanceUseCase(statementsRepositoryInMemory, usersRepositoryInMemory);
+    getStatementOperationUseCase = new GetStatementOperationUseCase(usersRepositoryInMemory, statementsRepositoryInMemory);
   });
 
-  it("should be possible list user's balance", async () => {
+  it("should be possible to list a statement operation", async () => {
     const user = {
       name: "John Doe",
       email: "john@example.com",
@@ -38,15 +38,15 @@ describe("Get Balance", () => {
       password: user.password,
     });
 
-    await createStatementUseCase.execute({
+    const statement = await createStatementUseCase.execute({
       user_id: userCreated.id!,
       amount: 10,
       description: "teste",
       type: OperationType.DEPOSIT
     });
 
-    const balance = await getBalanceUserCase.execute({ user_id: userCreated.id! });
+    const statementOperation = await getStatementOperationUseCase.execute({ user_id: userCreated.id!, statement_id: statement.id! });
 
-    expect(balance).toHaveProperty("balance", 10);
+    expect(statementOperation).toHaveProperty("user_id", userCreated.id);
   });
 });
